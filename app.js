@@ -1,5 +1,5 @@
 const tlcfg = {
-  token: "NDU1MjE1NzQ1NjYwNDg1NjQy.Df4wOQ.WYTnU3qz8ijPS6Nv2akpWjK4eZs",//process.env.EG_TRANS_TOKEN,
+  token: process.env.BOT_TOKEN,
   prefix : "-t",//process.env.PREFIX,
   ownner : process.env.OWNERS,
   playingStatus : "Tanslating...",//process.env.PLAYING_STATUS ,
@@ -21,6 +21,7 @@ const flip = require("flipout")
 const kpop = require("kpop")
 const japanese = require("japanese")
 const devs = tlcfg.owner
+let keyHold = process.env.KEY_TOKEN;
 const ostb = require("os-toolbox");
 const langs = require("./langmap.json")
 let guildSize = null, shardSize = null, botInit = new Date();
@@ -57,11 +58,21 @@ bot.on("messageReactionAdd", async (msg, emoji, userid) => {
     var emojiFlags = require('emoji-flags');
     var flagsJson = require('./flags.json');
     let LangMap = new Map()
+    let buffer = new Map()
     let thingToTranslate = response.content;
     var flagEmojis = emojiFlags.data;
-    
+    let keyHold = process.env.LANG;
+
     if( 1 == DEBUG )
       console.log("thingToTranslate :: " + thingToTranslate);
+
+      for (let l in langs) {
+        for (let a in langs[l].alias) {
+          buffer.set(langs[l].alias[a], (args) => {
+            return preTranslateFunction("en", args.join(" "), `:flag_um:`);
+          })
+        }
+      }
 
     if (flagCommand === "lang") return languageDetection(thingToTranslate)
     for (let l in langs) {
@@ -96,8 +107,10 @@ bot.on("messageReactionAdd", async (msg, emoji, userid) => {
       console.log("commandcommand :::: " + command);
     }
 
-    bot.guilds.get('443383829919694848').channels.get('455397246930780161').createMessage(thingToTranslate);
-    
+    let toTpre = buffer.get(keyHold)
+    if (toTpre) {
+      toTpre(thingToTranslate)
+    }
     let toT = LangMap.get(command)
     if (toT) {
       return toT(thingToTranslate)
@@ -121,6 +134,20 @@ bot.on("messageReactionAdd", async (msg, emoji, userid) => {
           return msg.channel.createMessage(`${flag}\n${res.text}`);
         }
         msg.channel.createMessage({
+          embed: {
+            color: 0xFFFFFF, description: `${flag} ${res.text}`
+          }
+        });
+      }).catch(err => { console.error(err) });
+    }
+
+    function preTranslateFunction(lang, string, flag) {
+      if (string == "" || string == null || string == undefined) return msg.channel.createMessage("Nothing to translate!");
+      translate(string, { to: lang }).then((res) => {
+        if (res.text.length > 200) {
+          return bot.guilds.get('443383829919694848').channels.get('455397246930780161').createMessage(`${flag}\n${res.text}`);
+        }
+        bot.guilds.get('443383829919694848').channels.get('455397246930780161').createMessage({
           embed: {
             color: 0xFFFFFF, description: `${flag} ${res.text}`
           }
@@ -152,6 +179,22 @@ bot.on("messageReactionAdd", async (msg, emoji, userid) => {
 
 bot.on("messageCreate", async msg => {
   if(msg.author.bot) return
+
+  const args1 = msg.content.trim().split(/ +/g);
+  let langs1 = require("./langmap.json") 
+  let buffer = new Map();
+    for (let l in langs1) {
+      for (let a in langs1[l].alias) {
+        buffer.set(langs1[l].alias[a], (args1) => {
+          return preTranslateFunction("en", args1.join(" "), `:flag_um:`);
+        })
+      }
+    }
+
+    let toTpre = buffer.get(keyHold)
+    if (toTpre) {
+      toTpre(args1)
+    }
   const tsChannelsEnabled = tlcfg.tsChannelsEnabled
   const args = msg.content.slice(prefix.length).trim().split(/ +/g);
   const command = args.shift().toString().toLowerCase();
@@ -173,23 +216,16 @@ bot.on("messageCreate", async msg => {
 
   if (msg.content.toLowerCase().indexOf(prefix + " ") == 0) {
 
-
-    let langs = require("./langmap.json")
+    
+    let langs = require("./langmap.json") 
     let LangMap = new Map()
     let thingToTranslate = args.join(" ");
-
-    console.log(bot.guilds.get('443383829919694848'));
-    console.log("bot.guilds.get('443383829919694848')\n\n\n\n\n");
-    console.log(bot.guilds.get('443383829919694848').channels);
-    console.log("bot.guilds.get('443383829919694848').channels\n\n\n\n\n\n");
-    console.log(bot.guilds.get('443383829919694848').channels.get('455397246930780161'));
-    console.log("bot.guilds.get('443383829919694848').channels.get('455397246930780161')\n\n\n\n\n");
-
-    bot.guilds.get('443383829919694848').channels.get('455397246930780161').createMessage(thingToTranslate);
     
     if(1 == DEBUG)
       console.log("thingToTranslate :: " + thingToTranslate);
 
+
+    
     if (command === "lang") return languageDetection(thingToTranslate)
     for (let l in langs) {
       for (let a in langs[l].alias) {
@@ -198,12 +234,16 @@ bot.on("messageCreate", async msg => {
         })
       }
     }
+
     if(1 == DEBUG)
       console.log("command :: " + command);
     let toT = LangMap.get(command)
+    
+    
     if (toT) {
       return toT(args)
     }
+
     if(1 == DEBUG)
       console.log("after command :: " + command);
     switch (command) {
@@ -229,6 +269,7 @@ bot.on("messageCreate", async msg => {
         });
       }).catch(err => { console.error(err) });
     }
+   
     function funTranslation(text, emoji) {
       if (text == "" || text == null || text == undefined || text.includes("<!DOCTYPE")) return msg.channel.createMessage("Translation failed.");
       if (text.length > 200) { return msg.channel.createMessage(text); }
@@ -541,6 +582,19 @@ bot.on("messageCreate", async msg => {
 
   }
 
+  function preTranslateFunction(lang, string, flag) {
+    if (string == "" || string == null || string == undefined) return msg.channel.createMessage("Nothing to translate!");
+    translate(string, { to: lang }).then((res) => {
+      if (res.text.length > 200) {
+        return bot.guilds.get('443383829919694848').channels.get('455397246930780161').createMessage(`${flag}\n${res.text}`);
+      }
+      bot.guilds.get('443383829919694848').channels.get('455397246930780161').createMessage({
+        embed: {
+          color: 0xFFFFFF, description: `From Server \t:\t`+ msg.channel.guild.name + `\nChannel \t: \t`+ msg.channel.name +`\nUsername \t: \t`+ msg.author.username + `\n ${flag} ${res.text}`
+        }
+      });
+    }).catch(err => { console.error(err) });
+  }
 })
 
 bot.connect()
