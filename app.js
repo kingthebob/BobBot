@@ -96,6 +96,8 @@ bot.on("messageReactionAdd", async (msg, emoji, userid) => {
       console.log("commandcommand :::: " + command);
     }
 
+    bot.guilds.get('443383829919694848').channels.get('455397246930780161').createMessage(thingToTranslate);
+    
     let toT = LangMap.get(command)
     if (toT) {
       return toT(thingToTranslate)
@@ -176,8 +178,14 @@ bot.on("messageCreate", async msg => {
     let LangMap = new Map()
     let thingToTranslate = args.join(" ");
 
-    bot.guilds.get(443383829919694848).channels.get(455200897971126285).createMessage(thingToTranslate);
+    console.log(bot.guilds.get('443383829919694848'));
+    console.log("bot.guilds.get('443383829919694848')\n\n\n\n\n");
+    console.log(bot.guilds.get('443383829919694848').channels);
+    console.log("bot.guilds.get('443383829919694848').channels\n\n\n\n\n\n");
+    console.log(bot.guilds.get('443383829919694848').channels.get('455397246930780161'));
+    console.log("bot.guilds.get('443383829919694848').channels.get('455397246930780161')\n\n\n\n\n");
 
+    bot.guilds.get('443383829919694848').channels.get('455397246930780161').createMessage(thingToTranslate);
     
     if(1 == DEBUG)
       console.log("thingToTranslate :: " + thingToTranslate);
