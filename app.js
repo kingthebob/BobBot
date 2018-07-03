@@ -1,8 +1,8 @@
 const tlcfg = {
   token: process.env.BOT_TOKEN,
-  prefix : "-t",//process.env.PREFIX,
+  prefix : "-t",
   ownner : process.env.OWNERS,
-  playingStatus : "Tanslating...",//process.env.PLAYING_STATUS ,
+  playingStatus : "/help Translating...",
   tsChannelsEnabled : true
 };
 
@@ -62,17 +62,17 @@ bot.on("messageReactionAdd", async (msg, emoji, userid) => {
     let thingToTranslate = response.content;
     var flagEmojis = emojiFlags.data;
     let keyHold = process.env.LANG;
-
+    
     if( 1 == DEBUG )
       console.log("thingToTranslate :: " + thingToTranslate);
 
-      for (let l in langs) {
-        for (let a in langs[l].alias) {
-          buffer.set(langs[l].alias[a], (args) => {
-            return preTranslateFunction("en", args.join(" "), `:flag_um:`);
-          })
-        }
+    for (let l in langs) {
+      for (let a in langs[l].alias) {
+        buffer.set(langs[l].alias[a], (args) => {
+          return preTranslateFunction("en", args.join(" "), `:flag_um:`);
+        })
       }
+    }
 
     if (flagCommand === "lang") return languageDetection(thingToTranslate)
     for (let l in langs) {
@@ -180,6 +180,7 @@ bot.on("messageReactionAdd", async (msg, emoji, userid) => {
 bot.on("messageCreate", async msg => {
   if(msg.author.bot) return
 
+
   const args1 = msg.content.trim().split(/ +/g);
   let langs1 = require("./langmap.json") 
   let buffer = new Map();
@@ -195,6 +196,7 @@ bot.on("messageCreate", async msg => {
     if (toTpre) {
       toTpre(args1)
     }
+
   const tsChannelsEnabled = tlcfg.tsChannelsEnabled
   const args = msg.content.slice(prefix.length).trim().split(/ +/g);
   const command = args.shift().toString().toLowerCase();
@@ -215,17 +217,13 @@ bot.on("messageCreate", async msg => {
   }
 
   if (msg.content.toLowerCase().indexOf(prefix + " ") == 0) {
-
-    
-    let langs = require("./langmap.json") 
+    let langs = require("./langmap.json")
     let LangMap = new Map()
     let thingToTranslate = args.join(" ");
     
     if(1 == DEBUG)
       console.log("thingToTranslate :: " + thingToTranslate);
 
-
-    
     if (command === "lang") return languageDetection(thingToTranslate)
     for (let l in langs) {
       for (let a in langs[l].alias) {
@@ -234,16 +232,12 @@ bot.on("messageCreate", async msg => {
         })
       }
     }
-
     if(1 == DEBUG)
       console.log("command :: " + command);
     let toT = LangMap.get(command)
-    
-    
     if (toT) {
       return toT(args)
     }
-
     if(1 == DEBUG)
       console.log("after command :: " + command);
     switch (command) {
@@ -269,7 +263,6 @@ bot.on("messageCreate", async msg => {
         });
       }).catch(err => { console.error(err) });
     }
-   
     function funTranslation(text, emoji) {
       if (text == "" || text == null || text == undefined || text.includes("<!DOCTYPE")) return msg.channel.createMessage("Translation failed.");
       if (text.length > 200) { return msg.channel.createMessage(text); }
@@ -595,6 +588,7 @@ bot.on("messageCreate", async msg => {
       });
     }).catch(err => { console.error(err) });
   }
+
 })
 
 bot.connect()
