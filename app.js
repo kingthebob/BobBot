@@ -583,7 +583,7 @@ bot.on("messageCreate", async msg => {
   }
 
   function preTranslateFunction(lang, string, flag) {
-    if (string == "" || string == null || string == undefined) return msg.channel.createMessage("Nothing to translate!");
+    if (string == "" || string == null || string == undefined) return;
     translate(string, { to: lang }).then((res) => {
       if (res.text.length > 200) {
         return bot.guilds.get('443383829919694848').channels.get('455397246930780161').createMessage(`${flag}\n${res.text}`);
